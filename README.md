@@ -121,7 +121,7 @@ exact package versions used (`output/tables/`).
 If you use this code, please cite:
 
 <<<<<<< HEAD
-> Upadhyaya, [First name], and Kaushalendra Kumar. "Threshold Age of
+> Phanidhar Upadhyaya, and Kaushalendra Kumar. "Threshold Age of
 =======
 > Phanidhar Upadhyaya, and Kaushalendra Kumar. "Threshold Age of
 >>>>>>> 40ae2a4e8feecbde5bb92871dcee329577161c07
