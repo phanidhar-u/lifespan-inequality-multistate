@@ -82,9 +82,9 @@ exact package versions used (`output/tables/`).
 ## Model summary
 
 - **States.** Healthy (1), Disabled (2), Dead (absorbing).
-- **Intensities.** Four age-varying Gompertz-type hazards — disability
+- **Intensities.** Four age-varying Gompertz-type hazards: disability
   incidence (mu12), recovery (mu21), and cause-specific mortality (mu1d,
-  mu2d) — are combined into a 2x2 generator matrix `A(x)` (`R/01_model.R`,
+  mu2d) are combined into a 2x2 generator matrix `A(x)` (`R/01_model.R`,
   `transition_generator()`).
 - **Transition probabilities.** The generator is exponentiated on a fine
   age grid (`AGE_STEP = 0.25` years by default; see `config.R`) to build the
