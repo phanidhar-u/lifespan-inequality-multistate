@@ -1,0 +1,24 @@
+Package: LifespanInequalityMultistate
+Title: Threshold Age of Lifespan Inequality in a Multistate (Healthy-Disabled) Framework
+Version: 1.0.0
+Authors@R: person("Phanidhar", "Upadhyaya", email = "Phanidhar.u@gmail.com", role = c("aut", "cre"))
+Description: Reproducible code for a multistate (Healthy-Disabled-Dead) extension
+    of the single-state threshold-age condition for lifespan inequality. Implements
+    a discretised product-integral over age-varying Gompertz-type transition
+    intensities, computes multistate survival, lifespan entropy, and the threshold
+    age a* solving the eq. (30) condition, and reproduces all figures and tables
+    in the associated manuscript. This is a research-compendium DESCRIPTION file
+    (not a package on CRAN); it exists to document dependencies precisely.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.2)
+Imports:
+    expm,
+    ggplot2,
+    dplyr,
+    tidyr,
+    tibble,
+    purrr,
+    readr,
+    patchwork,
+    scales

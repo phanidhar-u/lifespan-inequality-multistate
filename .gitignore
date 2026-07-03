@@ -1,0 +1,20 @@
+# R artifacts
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# renv
+renv/library/
+renv/local/
+renv/staging/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Generated outputs (regenerate via run_analysis.R; comment out to track in git)
+# output/figures/*.pdf
+# output/tables/*.csv
