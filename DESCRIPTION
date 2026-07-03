@@ -1,7 +1,7 @@
 Package: LifespanInequalityMultistate
 Title: Threshold Age of Lifespan Inequality in a Multistate (Healthy-Disabled) Framework
 Version: 1.0.0
-Authors@R: person("Phanidhar", "Upadhyaya", email = "Phanidhar.u@gmail.com", role = c("aut", "cre"))
+Authors@R: person("Phanidhar", "Upadhyaya", email = "phanidhar.u@gmail.com", role = c("aut", "cre"))
 Description: Reproducible code for a multistate (Healthy-Disabled-Dead) extension
     of the single-state threshold-age condition for lifespan inequality. Implements
     a discretised product-integral over age-varying Gompertz-type transition
