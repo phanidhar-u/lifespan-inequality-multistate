@@ -38,7 +38,7 @@ Gompertz-type transition intensities.
 
 The output layer is designed so this never requires touching path logic:
 
-1. **New figure** — write a `plot_*()` function in `R/04_figures.R` (or a new
+1. **New figure**: write a `plot_*()` function in `R/04_figures.R` (or a new
    `R/06_*.R` if it belongs to a new analysis), then in `run_analysis.R`:
    ```r
    figS3 <- plot_my_new_check(...)
@@ -46,7 +46,7 @@ The output layer is designed so this never requires touching path logic:
                caption = "One-line caption for the manifest.",
                width = 8, height = 5, supplementary = TRUE)
    ```
-2. **New table** — build the data frame in the relevant `R/0N_*.R` script,
+2. **New table**: build the data frame in the relevant `R/0N_*.R` script,
    then call `save_table()` the same way. Main-text tables use
    `supplementary = FALSE` (the default); appendix/referee-response tables
    use `supplementary = TRUE`.
