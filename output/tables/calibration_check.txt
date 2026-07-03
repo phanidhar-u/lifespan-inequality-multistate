@@ -1,0 +1,9 @@
+=================================================================
+CALIBRATION VERIFICATION
+=================================================================
+e0ms, healthy-start             32.62 yrs  (target: 32.3)
+e0ms, disabled-start            29.77 yrs
+e0ms, mixed-start               31.91 yrs
+mu1d at age 50                  0.00300  (target: 0.00416)
+mu1d at age 70                  0.01486  (target: 0.01965)
+mu1d at age 80                  0.03307  (target: 0.04720)
