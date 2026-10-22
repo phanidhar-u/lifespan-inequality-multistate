@@ -1,10 +1,12 @@
 Package: multistateLifespanInequality
 Type: Package
-Title: Replication Code for "Threshold Age of Lifespan Inequality in a Multistate Framework"
+Title: Replication Code for "Threshold Age for Multistate Life Table Entropy: A Perturbation Approach"
 Version: 1.1.0
 Authors@R: c(
     person("Phanidhar", "Upadhyaya", email = "phanidhar.u@gmail.com", role = c("aut", "cre")),
-    person("Kaushalendra", "Kumar", role = "aut")
+    person("Jos\u00e9 Manuel", "Aburto", role = "aut"),
+    person("Kaushalendra", "Kumar", role = "aut"),
+    person("Abhishek", "Singh", role = "aut")
   )
 Description: Reproducible code for continuous-age multistate life tables,
     age-varying Gompertz transition intensities, threshold age conditions for

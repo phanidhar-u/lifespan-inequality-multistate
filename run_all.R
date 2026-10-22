@@ -2,8 +2,8 @@
 # run_all.R
 #
 # Master reproduction pipeline for:
-#   Upadhyaya & Kumar, "Threshold Age of Lifespan Inequality in a Multistate
-#   (Healthy-Disabled) Framework"
+#   Upadhyaya, Aburto, Kumar, & Singh, "Threshold Age for Multistate Life Table
+#   Entropy: A Perturbation Approach"
 #
 # Usage:
 #   Rscript run_all.R

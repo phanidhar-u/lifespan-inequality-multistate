@@ -2,8 +2,8 @@
 # config.R
 #
 # Global configuration for the multistate threshold-age analysis.
-# Upadhyaya & Kumar, "Threshold Age of Lifespan Inequality in a Multistate
-# (Healthy-Disabled) Framework"
+# Upadhyaya, Aburto, Kumar, & Singh, "Threshold Age for Multistate Life Table
+# Entropy: A Perturbation Approach"
 #
 # Isolating the age grid, calibrated baseline parameters, and paths here
 # ensures full auditability without hardcoded magic numbers in analysis scripts.
