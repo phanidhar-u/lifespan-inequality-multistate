@@ -1,89 +1,91 @@
 # =============================================================================
 # R/00_io.R
 #
-# Output helpers used throughout the pipeline. Centralising figure/table
-# saving here means every output is written in a consistent format, to a
-# consistent location, and logged in a single manifest — so adding a new
-# figure or table later (e.g. for a revision or referee response) only
-# requires calling save_figure()/save_table(), not re-deriving paths.
-#
-# Must be sourced before R/02_run_baseline.R, R/03_sensitivity.R, and
-# run_analysis.R.
+# Helpers for consistent figure and table saving, dual format exports
+# (vector PDF + 300 DPI PNG), and automatic manifest generation.
 # =============================================================================
 
-# Running list of everything written this session; flushed to
-# output/manifest.md at the end of run_analysis.R via write_manifest().
-.manifest <- tibble::tibble(
-  type = character(), number = character(), file = character(), caption = character()
-)
+.manifest_env <- new.env(parent = emptyenv())
+.manifest_env$entries <- list()
 
-#' Save a ggplot/patchwork figure as PDF (submission) + PNG (preview)
+#' Save a ggplot figure in both PDF and PNG formats
 #'
-#' @param plot A ggplot or patchwork object.
-#' @param number Figure label as it appears in the manuscript, e.g. "Fig1"
-#'   or "FigS1" for supplementary figures.
-#' @param filename Short, descriptive snake_case name (no extension), e.g.
-#'   "transition_intensities".
-#' @param caption One-line caption recorded in the manifest.
-#' @param width,height Figure dimensions in inches.
-#' @param supplementary If TRUE, saves under output/figures/supplementary/
-#'   instead of output/figures/main/.
-#' @param dpi Raster resolution for the PNG copy.
-save_figure <- function(plot, number, filename, caption, width, height,
-                         supplementary = FALSE, dpi = 320) {
-  subdir <- if (supplementary) "supplementary" else "main"
-  dir <- file.path(DIR_FIGURES, subdir)
-  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+#' @param plot_obj A ggplot or patchwork object.
+#' @param base_name Primary filename (without extension), e.g. "Fig1_perturbation_mechanics".
+#' @param alt_names Optional character vector of additional alias filenames to save
+#'   (e.g., "fig_perturbation_mechanics" to match LaTeX \includegraphics directly).
+#' @param caption One-line descriptive caption for the manifest.
+#' @param width Width in inches.
+#' @param height Height in inches.
+#' @param supplementary Logical; if TRUE, saves to output/figures/supplementary.
+save_figure <- function(plot_obj, base_name, alt_names = NULL, caption = "",
+                        width = 8, height = 5, supplementary = FALSE) {
+  target_dir <- if (supplementary) DIR_FIG_SUPP else DIR_FIG_MAIN
 
-  base <- file.path(dir, paste0(number, "_", filename))
-  ggplot2::ggsave(paste0(base, ".pdf"), plot, width = width, height = height)
-  ggplot2::ggsave(paste0(base, ".png"), plot, width = width, height = height, dpi = dpi)
+  all_names <- unique(c(base_name, alt_names))
 
-  .manifest <<- dplyr::bind_rows(.manifest, tibble::tibble(
-    type = "Figure", number = number,
-    file = paste0(subdir, "/", number, "_", filename, ".pdf"),
-    caption = caption
-  ))
-  invisible(base)
-}
+  for (nm in all_names) {
+    pdf_path <- file.path(target_dir, paste0(nm, ".pdf"))
+    png_path <- file.path(target_dir, paste0(nm, ".png"))
 
-#' Save a data frame as CSV and register it in the manifest
-#'
-#' @param df A data frame / tibble.
-#' @param number Table label as it appears in the manuscript, e.g. "Table1"
-#'   or "TableS1" for supplementary tables.
-#' @param filename Short, descriptive snake_case name (no extension).
-#' @param caption One-line caption recorded in the manifest.
-#' @param supplementary If TRUE, saves under output/tables/supplementary/
-#'   instead of output/tables/main/.
-save_table <- function(df, number, filename, caption, supplementary = FALSE) {
-  subdir <- if (supplementary) "supplementary" else "main"
-  dir <- file.path(DIR_TABLES, subdir)
-  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+    ggplot2::ggsave(pdf_path, plot = plot_obj, width = width, height = height,
+                    device = "pdf", bg = "white")
+    ggplot2::ggsave(png_path, plot = plot_obj, width = width, height = height,
+                    dpi = 300, bg = "white")
+  }
 
-  path <- file.path(dir, paste0(number, "_", filename, ".csv"))
-  readr::write_csv(df, path)
-
-  .manifest <<- dplyr::bind_rows(.manifest, tibble::tibble(
-    type = "Table", number = number,
-    file = paste0(subdir, "/", number, "_", filename, ".csv"),
-    caption = caption
-  ))
-  invisible(path)
-}
-
-#' Write the accumulated figure/table manifest to output/manifest.md
-write_manifest <- function() {
-  ordered <- dplyr::arrange(.manifest, type, number)
-  lines <- c(
-    "# Output manifest",
-    "",
-    "Auto-generated by `run_analysis.R`. Do not edit by hand — add a new",
-    "`save_figure()` / `save_table()` call in the relevant `R/*.R` script instead.",
-    "",
-    "| Type | Number | File | Caption |",
-    "|------|--------|------|---------|",
-    sprintf("| %s | %s | `%s` | %s |", ordered$type, ordered$number, ordered$file, ordered$caption)
+  .manifest_env$entries[[length(.manifest_env$entries) + 1]] <- list(
+    type        = if (supplementary) "Supplementary Figure" else "Main Figure",
+    file        = paste0(base_name, ".pdf"),
+    path        = file.path(target_dir, paste0(base_name, ".pdf")),
+    caption     = caption
   )
-  writeLines(lines, "output/manifest.md")
+
+  invisible(plot_obj)
+}
+
+#' Save a data frame as a CSV table
+#'
+#' @param df Data frame or tibble to save.
+#' @param base_name Filename without extension (e.g. "Table1_baseline_results").
+#' @param caption One-line descriptive caption for the manifest.
+#' @param supplementary Logical; if TRUE, saves to output/tables/supplementary.
+save_table <- function(df, base_name, caption = "", supplementary = FALSE) {
+  target_dir <- if (supplementary) DIR_TAB_SUPP else DIR_TAB_MAIN
+  csv_path   <- file.path(target_dir, paste0(base_name, ".csv"))
+
+  readr::write_csv(df, csv_path)
+
+  .manifest_env$entries[[length(.manifest_env$entries) + 1]] <- list(
+    type        = if (supplementary) "Supplementary Table" else "Main Table",
+    file        = paste0(base_name, ".csv"),
+    path        = csv_path,
+    caption     = caption
+  )
+
+  invisible(df)
+}
+
+#' Write manifest Markdown file summarizing all generated artifacts
+write_manifest <- function(output_file = file.path(DIR_OUT, "manifest.md")) {
+  entries <- .manifest_env$entries
+  if (length(entries) == 0) return(invisible(NULL))
+
+  lines <- c(
+    "# Reproduction Artifacts Manifest",
+    "",
+    "Generated automatically by `run_all.R`.",
+    "",
+    "| Type | File | Description |",
+    "| :--- | :--- | :--- |"
+  )
+
+  for (e in entries) {
+    rel_path <- gsub("\\\\", "/", e$path)
+    lines <- c(lines, sprintf("| %s | [`%s`](%s) | %s |", e$type, e$file, rel_path, e$caption))
+  }
+
+  lines <- c(lines, "", paste0("*Total artifacts generated: ", length(entries), "*"))
+  writeLines(lines, output_file)
+  invisible(output_file)
 }

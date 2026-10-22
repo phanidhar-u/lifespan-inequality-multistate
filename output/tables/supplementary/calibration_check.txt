@@ -1,5 +1,5 @@
 =================================================================
-CALIBRATION VERIFICATION
+CALIBRATION VERIFICATION (CDC/NCHS 2019 Period Life Table Targets)
 =================================================================
 e0ms, healthy-start             32.62 yrs  (target: 32.3)
 e0ms, disabled-start            29.77 yrs

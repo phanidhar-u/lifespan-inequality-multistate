@@ -1,22 +1,13 @@
 # =============================================================================
 # R/03_sensitivity.R
 #
-# Sensitivity analysis for the threshold age a*:
-#   (a) one-at-a-time (OAT) variation of each intensity scale parameter
+# Sensitivity analysis for threshold age a*:
+#   (a) One-at-a-time (OAT) variation of intensity level parameters
 #       (a12, a21, a1d, a2d) by +/-25% and +/-50% around baseline;
-#   (b) variation of the disabled/healthy excess-mortality ratio
-#       r = a2d / a1d over the range [1.5, 4.0], with a1d held fixed.
-#
-# Requires config.R, R/01_model.R, and R/02_run_baseline.R to already be
-# sourced (the latter for `baseline_results`, used as the OAT reference).
+#   (b) Variation of disabled/healthy excess-mortality ratio r = a2d / a1d in [1.5, 4.0];
+#   (c) Joint sensitivity over mortality ratio x disability incidence.
 # =============================================================================
 
-#' Threshold ages for all three initial states under a given parameter set
-#'
-#' @param intensities A list of intensity functions from
-#'   [construct_intensities()].
-#' @return A named numeric vector of a* values, one per entry of
-#'   `INITIAL_STATES`.
 threshold_ages_by_state <- function(intensities) {
   transitions <- build_transition_matrices(intensities, ages)
   purrr::map_dbl(
@@ -25,13 +16,13 @@ threshold_ages_by_state <- function(intensities) {
   )
 }
 
-# ---- (a) One-at-a-time parameter variation -----------------------------------
+# ---- (a) One-at-a-time (OAT) parameter variation -----------------------------
 oat_parameters <- c("a12", "a21", "a1d", "a2d")
 oat_labels <- c(
   a12 = "Disability incidence scale (a[12])",
   a21 = "Recovery scale (a[21])",
-  a1d = "Healthy mortality scale (a[1+])",
-  a2d = "Disabled mortality scale (a[2+])"
+  a1d = "Healthy mortality scale (a[1*'\u2020'])",
+  a2d = "Disabled mortality scale (a[2*'\u2020'])"
 )
 oat_multipliers <- c(0.50, 0.75, 1.00, 1.25, 1.50)
 oat_mult_labels <- c("-50%", "-25%", "Baseline", "+25%", "+50%")
@@ -58,7 +49,7 @@ sensitivity_oat <- purrr::pmap_dfr(oat_grid, function(param, mult_idx) {
   )
 }) |>
   tidyr::pivot_longer(c(a_healthy, a_disabled, a_mixed),
-                       names_to = "init_state", values_to = "a_star") |>
+                      names_to = "init_state", values_to = "a_star") |>
   dplyr::mutate(
     init_state = factor(
       init_state,
@@ -68,12 +59,12 @@ sensitivity_oat <- purrr::pmap_dfr(oat_grid, function(param, mult_idx) {
     mult_label = factor(mult_label, levels = oat_mult_labels)
   )
 
-# ---- (b) Disabled/healthy mortality ratio -------------------------------------
+# ---- (b) Disabled/healthy mortality ratio r ----------------------------------
 mortality_ratios <- c(1.5, 2.0, 2.5, 3.0, 3.5, 4.0)
 
 sensitivity_ratio <- purrr::map_dfr(mortality_ratios, function(r) {
   params <- BASELINE_PARAMS
-  params$a2d <- BASELINE_PARAMS$a1d * r   # a1d held fixed at its calibrated value
+  params$a2d <- BASELINE_PARAMS$a1d * r   # a1d held fixed at calibrated level
   a_star <- threshold_ages_by_state(do.call(construct_intensities, params))
 
   tibble::tibble(
@@ -84,7 +75,7 @@ sensitivity_ratio <- purrr::map_dfr(mortality_ratios, function(r) {
   )
 }) |>
   tidyr::pivot_longer(c(a_healthy, a_disabled, a_mixed),
-                       names_to = "init_state", values_to = "a_star") |>
+                      names_to = "init_state", values_to = "a_star") |>
   dplyr::mutate(
     init_state = factor(
       init_state,
@@ -93,35 +84,7 @@ sensitivity_ratio <- purrr::map_dfr(mortality_ratios, function(r) {
     )
   )
 
-save_table(
-  sensitivity_oat, "TableS1", "sensitivity_oat",
-  caption = "One-at-a-time sensitivity of threshold age a* to +/-25%/+/-50% parameter variation.",
-  supplementary = TRUE
-)
-save_table(
-  sensitivity_ratio, "TableS2", "sensitivity_ratio",
-  caption = "Sensitivity of threshold age a* to the disabled/healthy mortality ratio (1.5-4.0).",
-  supplementary = TRUE
-)
-
-# ---- Summary tables printed at the end of the pipeline (see run_analysis.R) --
-sensitivity_oat_summary <- sensitivity_oat |>
-  dplyr::group_by(parameter, init_state) |>
-  dplyr::summarise(
-    min_a = round(min(a_star), 1),
-    max_a = round(max(a_star), 1),
-    range = round(max(a_star) - min(a_star), 1),
-    .groups = "drop"
-  )
-
-sensitivity_ratio_summary <- sensitivity_ratio |>
-  dplyr::group_by(init_state) |>
-  dplyr::summarise(range = round(max(a_star) - min(a_star), 1), .groups = "drop")
-
-# ---- (c) Joint sensitivity: mortality ratio x disability incidence -----------
-# Complements the OAT panel (Fig 4A) by varying two parameters simultaneously,
-# so interaction effects — invisible under one-at-a-time variation — show up
-# as curvature/non-parallel contours rather than being assumed away.
+# ---- (c) Joint sensitivity grid: ratio x incidence ---------------------------
 joint_ratios      <- seq(1.5, 4.0, by = 0.5)
 joint_multipliers <- seq(0.5, 1.5, by = 0.25)
 
@@ -132,17 +95,30 @@ sensitivity_joint <- tidyr::expand_grid(ratio = joint_ratios, mult = joint_multi
     params$a12 <- BASELINE_PARAMS$a12 * mult
     a_star <- threshold_ages_by_state(do.call(construct_intensities, params))
     tibble::tibble(ratio = ratio, mult = mult, a_healthy = a_star["healthy"],
-                    a_disabled = a_star["disabled"], a_mixed = a_star["mixed"])
+                   a_disabled = a_star["disabled"], a_mixed = a_star["mixed"])
   }) |>
   tidyr::pivot_longer(c(a_healthy, a_disabled, a_mixed),
-                       names_to = "init_state", values_to = "a_star") |>
+                      names_to = "init_state", values_to = "a_star") |>
   dplyr::mutate(init_state = factor(
     init_state, levels = c("a_healthy", "a_disabled", "a_mixed"),
     labels = c("Healthy (1,0)", "Disabled (0,1)", "Mixed (0.75,0.25)")
   ))
 
+# Save sensitivity tables
 save_table(
-  sensitivity_joint, "TableS5", "sensitivity_joint",
-  caption = "Joint sensitivity of a* to simultaneous variation in the mortality ratio and disability-incidence scale.",
+  sensitivity_oat, "TableS1_sensitivity_oat",
+  caption = "One-at-a-time sensitivity of threshold age a* to +/-25%/+/-50% parameter variation.",
+  supplementary = TRUE
+)
+
+save_table(
+  sensitivity_ratio, "TableS2_sensitivity_ratio",
+  caption = "Sensitivity of threshold age a* to excess mortality ratio (1.5 - 4.0).",
+  supplementary = TRUE
+)
+
+save_table(
+  sensitivity_joint, "TableS5_sensitivity_joint",
+  caption = "Joint sensitivity of a* to simultaneous variation in mortality ratio and disability-incidence scale.",
   supplementary = TRUE
 )
